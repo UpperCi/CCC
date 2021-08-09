@@ -34,7 +34,7 @@ const ITEMS = [
 		"mode": ITEMTYPES.RUNE
 	},
 	{
-		"src": "batWings.png",
+		"src": "batwings.png",
 		"type": ELEMENTS.OTHER,
 		"mode": ITEMTYPES.INGREDIENT,
 		"name": "batWings"
