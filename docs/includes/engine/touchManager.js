@@ -35,6 +35,7 @@ export class TouchManager {
     onTouchUp(e) {
         let vUp = new Vector(e.pageX, e.pageY).subtract(this.offset).divide(this.resMult);
         this.lastTap = vUp;
+        this.lastMove = vUp;
         this.justTapped = true;
         this.activeTracking = false;
     }
