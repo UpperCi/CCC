@@ -150,7 +150,6 @@ export class GameBoard {
 	}
 
 	private inBounds(v: Vector): boolean {
-		console.log(v)
 		let cellEnd = this.cellStart.add(this.cellSize.multiply(this.size)).subtract(new Vector(1, 1));
 		return (v.x > this.cellStart.x && v.y > this.cellStart.y && v.x < cellEnd.x && v.y < cellEnd.y);
 	}
