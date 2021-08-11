@@ -1,5 +1,6 @@
 import { Vector } from "../engine/vector.js";
-import { Item, ELEMENTS, ITEMTYPES, Rune, Ingredient } from "./item.js";
+import { BookSpell } from "./bookSpell.js";
+import { Item, ELEMENTS, ITEMTYPES, Rune, Ingredient, Spell } from "./item.js";
 var states;
 (function (states) {
     states[states["ANIMATION"] = 0] = "ANIMATION";
@@ -33,18 +34,49 @@ const ITEMS = [
         "type": ELEMENTS.OTHER,
         "mode": ITEMTYPES.INGREDIENT,
         "name": "batWings"
+    },
+    {
+        "src": "pumpkin.png",
+        "type": ELEMENTS.OTHER,
+        "mode": ITEMTYPES.SPELL,
+        "name": "pumpkin",
+        "onUse": (board, pos, game) => {
+            let y = Math.floor(pos / board.size.x);
+            for (let i = 0; i < board.size.x; i++) {
+                let cell = y * board.size.x + i;
+                board.clear(cell);
+            }
+        },
+        "cost": { "batWings": 3 }
+    },
+    {
+        "src": "pumpkin.png",
+        "type": ELEMENTS.OTHER,
+        "mode": ITEMTYPES.SPELL,
+        "name": "pumpkin",
+        "onUse": (board, pos, game) => {
+            let y = Math.floor(pos / board.size.x);
+            for (let i = 0; i < board.size.x; i++) {
+                let cell = y * board.size.x + i;
+                board.clear(cell);
+            }
+        },
+        "cost": { "batWings": 3 }
     }
 ];
 export class GameBoard {
     constructor(itemTypes = undefined) {
         this.size = new Vector(7, 7);
         this.items = [];
-        this.itemTypes = [0, 1, 2, 3, 4];
+        this.itemTypes = [0, 1, 2, 3, 4, 5, 6];
         this.itemGenerationPool = [];
         this.itemPool = [];
         this.totalItemWeight = 0;
+        this.spellBook = [];
         this.cellSize = new Vector(20, 20);
         this.cellStart = new Vector(11, 171);
+        this.spellBookStart = new Vector(4, 124);
+        this.spellBookDiv = 42;
         this.generatedItems = [];
         this.trackedItem = -1;
         this.toClear = [];
@@ -56,7 +88,6 @@ export class GameBoard {
         if (itemTypes) {
             this.itemTypes = itemTypes;
         }
-        this.initItemPool();
     }
     randomItem() {
         let n = Math.floor(Math.random() * this.totalItemWeight);
@@ -67,6 +98,9 @@ export class GameBoard {
                 if (this.itemPool[i] instanceof Ingredient) {
                     emptyItem = new Ingredient();
                 }
+                else if (this.itemPool[i] instanceof Spell) {
+                    emptyItem = new Spell();
+                }
                 return Object.assign(emptyItem, this.itemPool[i]);
             }
         }
@@ -74,10 +108,9 @@ export class GameBoard {
     }
     generateBoard(game) {
         this.game = game;
+        this.initItemPool();
         game.createImage('sketchBG.png', Vector.ZERO());
         this.scoreText = game.createText("0", new Vector(80, 80));
-        let btn = game.createButton('button.png', new Vector(8, 124), new Vector(30, 32), () => { console.log('button pressed'); });
-        btn.hoverSrc = "buttonHover.png";
         for (let i = 0; i < this.size.x * this.size.y; i++) {
             let pos = this.cellToPos(i);
             let item = this.randomItem();
@@ -145,6 +178,11 @@ export class GameBoard {
             }
         }
     }
+    updateSpellbook() {
+        for (let i of this.spellBook) {
+            i.updateLook();
+        }
+    }
     compareItems(i, vertical = false, count = 1) {
         let increment = vertical ? this.size.x : 1;
         let item1 = this.items[i];
@@ -164,8 +202,8 @@ export class GameBoard {
         return count;
     }
     checkIngredient(i) {
-        if (this.items[i] instanceof Ingredient && this.toClear.indexOf(i) === -1) {
-            this.toClear.push(i);
+        if (this.items[i] instanceof Ingredient) {
+            this.clear(i);
         }
     }
     checkAdjacent(i) {
@@ -182,6 +220,11 @@ export class GameBoard {
         }
         if (y < this.size.x) {
             this.checkIngredient(i + this.size.x);
+        }
+    }
+    clear(pos) {
+        if (this.toClear.indexOf(pos) === -1) {
+            this.toClear.push(pos);
         }
     }
     toClearItems(start, n, vertical) {
@@ -240,6 +283,9 @@ export class GameBoard {
                     this.inventory[name]++;
                 }
                 console.log(this.inventory);
+            }
+            else if (item instanceof Spell) {
+                item.use(this, i, this.game);
             }
         }
         for (let i = 0; i < this.items.length; i++) {
@@ -303,8 +349,19 @@ export class GameBoard {
         if (this.touch.justDown) {
             if (this.inBounds(this.touch.lastMove)) {
                 let pos = (this.posToCell(this.touch.lastMove));
-                this.trackedItem = pos.x + pos.y * this.size.x;
-                this.trackItemRef = this.items[this.trackedItem];
+                let cell = pos.x + pos.y * this.size.x;
+                let item = this.items[cell];
+                if (item instanceof Spell) {
+                    this.clear(cell);
+                    // item.use(this, cell, this.game);
+                    this.animTimer = 20;
+                    this.state = states.ANIMATION;
+                    this.trackedItem = -1;
+                }
+                else {
+                    this.trackedItem = cell;
+                    this.trackItemRef = item;
+                }
             }
         }
         // release item
@@ -314,8 +371,9 @@ export class GameBoard {
             let pos = this.posToCell(this.touch.lastTap);
             let currentPos = pos.x + pos.y * this.size.x;
             // released in adjacent cell?
-            if (currentPos === this.trackedItem - 1 || currentPos === this.trackedItem + 1 ||
-                currentPos === this.trackedItem - this.size.x || currentPos === this.trackedItem + this.size.x) {
+            if (this.inBounds(this.touch.lastTap) &&
+                (currentPos === this.trackedItem - 1 || currentPos === this.trackedItem + 1 ||
+                    currentPos === this.trackedItem - this.size.x || currentPos === this.trackedItem + this.size.x)) {
                 this.updateHighlight(new Vector(-20, 0));
                 let otherItem = this.items[currentPos];
                 this.items[this.trackedItem] = otherItem;
@@ -347,8 +405,9 @@ export class GameBoard {
             let pos = this.posToCell(this.touch.lastMove);
             let currentPos = pos.x + pos.y * this.size.x;
             // check if currently hovering over adjacent cell
-            if (currentPos === this.trackedItem - 1 || currentPos === this.trackedItem + 1 || currentPos === this.trackedItem ||
-                currentPos === this.trackedItem - this.size.x || currentPos === this.trackedItem + this.size.x) {
+            if (this.inBounds(this.touch.lastMove) &&
+                (currentPos === this.trackedItem - 1 || currentPos === this.trackedItem + 1 || currentPos === this.trackedItem ||
+                    currentPos === this.trackedItem - this.size.x || currentPos === this.trackedItem + this.size.x)) {
                 this.updateHighlight(pos);
             }
         }
@@ -406,6 +465,7 @@ export class GameBoard {
             case states.BOARDUPDATE:
                 this.updateItems();
                 this.clearItems();
+                this.updateSpellbook();
                 break;
             case states.WAIT:
                 this.wait();
@@ -427,6 +487,16 @@ export class GameBoard {
                 item.value = 20;
                 item.weight = 30;
                 item['name'] = itemData['name'];
+            }
+            else if (itemData.mode == ITEMTYPES.SPELL) {
+                let spell = new Spell();
+                spell['use'] = itemData['onUse'];
+                let pos = this.spellBookStart;
+                pos.x += (this.spellBook.length) * this.spellBookDiv;
+                let page = new BookSpell(pos, this.game, itemData['src'], spell, itemData['cost']);
+                this.spellBook.push(page);
+                console.log(pos);
+                continue;
             }
             item.src = itemData.src;
             if ('weight' in itemData && typeof [itemData['weight']] === "number") {

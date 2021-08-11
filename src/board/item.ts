@@ -1,5 +1,6 @@
 import { CanvasImage } from "../engine/canvasImage.js";
 import { Game } from "../engine/game.js";
+import { GameBoard } from "./board.js";
 
 export enum ELEMENTS {
     FIRE,
@@ -42,7 +43,5 @@ export class Ingredient extends Item {
 }
 
 export class Spell extends Item {
-    public use(item: Item[], pos: number, game: Game) {
-
-    }
+    public use: (board: GameBoard, pos: number, game: Game) => void;
 }

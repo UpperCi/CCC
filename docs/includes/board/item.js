@@ -33,6 +33,4 @@ export class Rune extends Item {
 export class Ingredient extends Item {
 }
 export class Spell extends Item {
-    use(item, pos, game) {
-    }
 }

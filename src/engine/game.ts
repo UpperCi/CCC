@@ -19,7 +19,7 @@ export class Game {
 	private renderText: RenderText[] = [];
 	private buttons: Button[] = [];
 
-	private board: GameBoard;
+	public board: GameBoard;
 
 	private deltaTimestamp = 0
 	public delta = 0;
