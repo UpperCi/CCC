@@ -1,4 +1,4 @@
-import { CanvasImage } from "../engine/canvasImage.js";
+import { CanvasImage } from "../engine/canvasObject.js";
 import { Game } from "../engine/game.js";
 import { GameBoard } from "./board.js";
 

@@ -274,7 +274,7 @@ export class GameBoard {
         let toGen = [];
         for (let i of this.toClear) {
             let item = this.items[i];
-            this.game.removeImage(this.items[i].image);
+            this.game.removeObj(this.items[i].image);
             this.game.createAnimation('explosion.png', 22, this.cellToPos(i), 15, true);
             this.items[i] = undefined;
             if (item instanceof Ingredient) {
@@ -474,6 +474,7 @@ export class GameBoard {
                 this.wait();
                 break;
             case states.STOP:
+                // this.game.fillRect('rgba(0,0,0,0.5)', 0, 0, this.game.canvasSize.x, this.game.canvasSize.y);
                 break;
         }
         this.touch.update();

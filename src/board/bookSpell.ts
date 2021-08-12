@@ -1,7 +1,7 @@
-import { CanvasImage } from "../engine/canvasImage.js";
+import { CanvasImage, Button } from "../engine/canvasObject.js";
 import { Game } from "../engine/game.js";
 import { Vector } from "../engine/vector.js";
-import { Button } from "../ui/button.js";
+import { states } from "./board.js";
 import { Spell } from "./item.js";
 
 export class BookSpell {
@@ -21,9 +21,11 @@ export class BookSpell {
         this.spriteSrc = src;
         this.cost = cost;
         this.btn = game.createButton('button.png', pos, new Vector(30, 32), () => {this.genItem()});
-        game.frontImage(this.sprite);
+        this.btn.zIndex = 5;
+        this.sprite.zIndex = 10;
         this.game = game;
         this.disableSprite = game.createImage('buttonBlocked.png', pos);
+        this.disableSprite.zIndex = 12;
     }
 
     public updateLook() {
@@ -32,7 +34,6 @@ export class BookSpell {
 
     private genItem() {
         let board = this.game.board;
-        let inv = board.inventory;
         
         if (this.affordable) {
             for (let i of Object.keys(this.cost)) {
@@ -43,14 +44,16 @@ export class BookSpell {
             let spell = new Spell();
             spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
             
-            this.game.removeImage(board.items[randomCell].image);
+            this.game.removeObj(board.items[randomCell].image);
     
             Object.assign(spell, this.spell);
             board.items[randomCell] = spell;
     
             board.updateSpellbook();
         } else {
-            board.recipe.showRecipe('pumpkin', this.cost);
+            if (board.state != states.STOP) {
+                board.recipe.showRecipe('pumpkin', this.cost);
+            }
         }
     }
 

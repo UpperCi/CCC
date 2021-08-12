@@ -1,7 +1,5 @@
 import { GameBoard } from "../board/board.js";
-import { Button } from "../ui/button.js";
-import { RenderText } from "../ui/renderObjects.js";
-import { CanvasAnimation, CanvasImage } from "./canvasImage.js";
+import { Button, CanvasAnimatedImage, CanvasImage, CanvasObject, CanvasText } from "./canvasObject.js";
 import { TouchManager } from "./touchManager.js";
 import { Vector } from "./vector.js";
 
@@ -10,14 +8,11 @@ const GAMEMARGINS = 64;
 export class Game {
 	private canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
-	private touch: TouchManager;
+	public touch: TouchManager;
 
-	private canvasSize: Vector = new Vector(160, 320);
+	public canvasSize: Vector = new Vector(160, 320);
 
-	private renderImages: CanvasImage[] = [];
-	private renderAnims: CanvasAnimation[] = [];
-	private renderText: RenderText[] = [];
-	private buttons: Button[] = [];
+	private canvasObjs: CanvasObject[] = [];
 
 	public board: GameBoard;
 
@@ -26,7 +21,6 @@ export class Game {
 	private frameCounter = 0;
 	private frameTimer = 0;
 	private frameRate = 0;
-
 
 	constructor() {
 		this.canvas = document.createElement('canvas');
@@ -83,142 +77,61 @@ export class Game {
 		}
 	}
 
-	private renderImgs() {
-		for (let img of this.renderImages) {
-			if (img.visible) {
-				this.ctx.drawImage(img, img.position.x, img.position.y);
-			}
-		}
-	}
-
-	private renderAnimations() {
-		for (let anim of this.renderAnims) {
-			anim.fpsTimer += this.delta;
-			let fpsTime = 60 / anim.fps;
-			if (anim.fpsTimer > fpsTime) {
-				anim.fpsTimer -= fpsTime;
-				anim.currentFrame++;
-				if (anim.currentFrame > anim.frames) {
-					if (anim.selfDestruct) {
-						this.removeAnim(anim);
-					} else {
-						anim.currentFrame = 0;
-					}
-				}
-			}
-
-			let pos = anim.currentFrame * anim.frameWidth;
-			if (anim.visible) {
-				this.ctx.drawImage(anim, pos, 0, anim.height, anim.frameWidth,
-					anim.position.x, anim.position.y, anim.height, anim.frameWidth);
-			}
-		}
-	}
-
-	private renderTexts() {
-		for (let text of this.renderText) {
-			this.ctx.font = text.font;
-			this.ctx.textAlign = text.align;
-			this.ctx.fillStyle = text.fill;
-			this.ctx.fillText(text.text, text.position.x, text.position.y);
-		}
-	}
-
-	private updateButtons(): void {
-		for (let button of this.buttons) {
-			if (this.touch.justMoved) {
-				button.checkHover(this.touch.lastMove);
-			}
-			if (this.touch.justTapped && button.posIn(this.touch.lastTap)) {
-				button.effect();
-			}
-		}
-	}
-
 	private loop(ms: number): void {
 		this.updateFrames(ms);
 
 		this.ctx.fillStyle = '#4b5bab';
 		this.ctx.fillRect(0, 0, this.canvasSize.x, this.canvasSize.y);
 
-		this.renderImgs();
-		this.renderAnimations();
-		this.renderTexts();
-		this.updateButtons();
+		for (let i of this.canvasObjs) {
+			i.draw(this.ctx, this);
+		}
 
 		this.board.update();
 
 		requestAnimationFrame((ms: number) => this.loop(ms));
 	}
 
-	// create an animated image from a spritesheet
-	public createAnimation(src: string, w: number, pos: Vector, fps: number = 15, selfDestruct = false): CanvasAnimation {
-		let anim = new CanvasAnimation();
-		anim.src = `assets/${src}`;
-		anim.frameWidth = w;
-		anim.fps = fps;
-		anim.frames = Math.floor(anim.width / anim.frameWidth);
-		anim.selfDestruct = selfDestruct;
-		anim.position = pos;
-		anim.currentFrame = 0;
-		anim.fpsTimer = 0;
+	private addObj(obj: CanvasObject) {
+		this.canvasObjs.push(obj);
+		// to-do. More efficiënt method than sorting everything everytime.
+		this.canvasObjs.sort((a: CanvasObject, b: CanvasObject) => {
+			return a.zIndex - b.zIndex;
+		})
+	}
 
-		this.renderAnims.push(anim);
+	// create an animated image from a spritesheet
+	public createAnimation(src: string, w: number, pos: Vector, fps: number = 15, selfDestruct = false): CanvasAnimatedImage {
+		let anim = new CanvasAnimatedImage(src, w, pos, fps, selfDestruct);
+		this.addObj(anim);
 
 		return anim;
 	}
 
 	// creates an image object that will be rendered at given position
 	public createImage(src: string, pos: Vector): CanvasImage {
-		let image = new CanvasImage();
-		image.src = `assets/${src}`;
+		let image = new CanvasImage(src, pos);
+		this.addObj(image);
 
-		image.position = pos;
-
-		this.renderImages.push(image);
 		return image;
 	}
 
-	public createText(str: string, pos: Vector): RenderText {
-		let text = new RenderText();
-		text.text = str;
-		text.position = pos;
+	public createText(str: string, pos: Vector): CanvasText {
+		let text = new CanvasText(str, pos);
+		this.addObj(text);
 
-		this.renderText.push(text);
 		return text;
 	}
 
 	public createButton(bgSrc: string, pos: Vector, size: Vector, effect: () => void): Button {
-		let button = new Button(bgSrc, pos, size, effect, this);
-		button.img = this.createImage(bgSrc, pos);
-
-		this.buttons.push(button);
+		let button = new Button(bgSrc, pos, size, effect);
+		this.addObj(button);
 
 		return button;
 	}
- 
-	// stops rendering an image
-	public removeImage(img: CanvasImage): void {
-		let pos = this.renderImages.indexOf(img);
-		this.renderImages.splice(pos, 1);
-	}
 
-	// stops rendering an image
-	public removeAnim(img: CanvasAnimation): void {
-		let pos = this.renderAnims.indexOf(img);
-		this.renderAnims.splice(pos, 1);
-	}
-
-	// stops rendering an image
-	public removeButton(button: Button): void {
-		let pos = this.buttons.indexOf(button);
-		this.buttons.splice(pos, 1);
-		this.removeImage(button.img);
-	}
-
-	// puts an image to the front of rendering
-	public frontImage(img: CanvasImage): void {
-		this.removeImage(img);
-		this.renderImages.push(img);
+	public removeObj(obj: CanvasObject) : void {
+		let pos = this.canvasObjs.indexOf(obj);
+		this.canvasObjs.splice(pos, 1);
 	}
 }

@@ -1,8 +1,7 @@
-import { CanvasImage } from "../engine/canvasImage.js";
+import { CanvasText, CanvasImage } from "../engine/canvasObject.js";
 import { Game } from "../engine/game.js";
 import { TouchManager } from "../engine/touchManager.js";
 import { Vector } from "../engine/vector.js";
-import { RenderText } from "../ui/renderObjects.js";
 import { BookSpell } from "./bookSpell.js";
 import { Item, ELEMENTS, ITEMTYPES, Rune, Ingredient, Spell } from "./item.js";
 import { Recipe } from "./recipe.js";
@@ -109,7 +108,7 @@ export class GameBoard {
 	private points = 0;
 	public inventory = {};
 	
-	private scoreText: RenderText;
+	private scoreText: CanvasText;
 
 	constructor(itemTypes: number[] = undefined) {
 		if (itemTypes) {
@@ -327,7 +326,7 @@ export class GameBoard {
 		let toGen = [];
 		for (let i of this.toClear) {
 			let item = this.items[i];
-			this.game.removeImage(this.items[i].image);
+			this.game.removeObj(this.items[i].image);
 			this.game.createAnimation('explosion.png', 22, this.cellToPos(i), 15, true);
 			this.items[i] = undefined;
 
@@ -541,6 +540,7 @@ export class GameBoard {
 				this.wait();
 				break;
 			case states.STOP:
+				// this.game.fillRect('rgba(0,0,0,0.5)', 0, 0, this.game.canvasSize.x, this.game.canvasSize.y);
 				break;
 		}
 
