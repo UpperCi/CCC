@@ -33,6 +33,7 @@ export class BookSpell {
             board.updateSpellbook();
         }
         else {
+            board.recipe.showRecipe('pumpkin', this.cost);
         }
     }
     get affordable() {

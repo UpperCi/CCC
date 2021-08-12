@@ -1,12 +1,14 @@
 import { Vector } from "../engine/vector.js";
 import { BookSpell } from "./bookSpell.js";
 import { Item, ELEMENTS, ITEMTYPES, Rune, Ingredient, Spell } from "./item.js";
-var states;
+import { Recipe } from "./recipe.js";
+export var states;
 (function (states) {
     states[states["ANIMATION"] = 0] = "ANIMATION";
     states[states["GAMEPLAY"] = 1] = "GAMEPLAY";
     states[states["BOARDUPDATE"] = 2] = "BOARDUPDATE";
     states[states["WAIT"] = 3] = "WAIT";
+    states[states["STOP"] = 4] = "STOP";
 })(states || (states = {}));
 const ITEMS = [
     {
@@ -33,7 +35,7 @@ const ITEMS = [
         "src": "batwings.png",
         "type": ELEMENTS.OTHER,
         "mode": ITEMTYPES.INGREDIENT,
-        "name": "batWings"
+        "name": "batwings"
     },
     {
         "src": "pumpkin.png",
@@ -47,7 +49,7 @@ const ITEMS = [
                 board.clear(cell);
             }
         },
-        "cost": { "batWings": 3 }
+        "cost": { "batwings": 3 }
     },
     {
         "src": "pumpkin.png",
@@ -61,7 +63,7 @@ const ITEMS = [
                 board.clear(cell);
             }
         },
-        "cost": { "batWings": 3 }
+        "cost": { "batwings": 3, "pumpkin": 6 }
     }
 ];
 export class GameBoard {
@@ -111,6 +113,7 @@ export class GameBoard {
         this.initItemPool();
         game.createImage('sketchBG.png', Vector.ZERO());
         this.scoreText = game.createText("0", new Vector(80, 80));
+        this.recipe = new Recipe(game);
         for (let i = 0; i < this.size.x * this.size.y; i++) {
             let pos = this.cellToPos(i);
             let item = this.randomItem();
@@ -469,6 +472,9 @@ export class GameBoard {
                 break;
             case states.WAIT:
                 this.wait();
+                break;
+            case states.STOP:
+                break;
         }
         this.touch.update();
     }

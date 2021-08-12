@@ -2,7 +2,7 @@ import { CanvasImage } from "../engine/canvasImage.js";
 import { Game } from "../engine/game.js";
 import { Vector } from "../engine/vector.js";
 import { Button } from "../ui/button.js";
-import { Ingredient, Spell } from "./item.js";
+import { Spell } from "./item.js";
 
 export class BookSpell {
     public sprite: CanvasImage;
@@ -50,7 +50,7 @@ export class BookSpell {
     
             board.updateSpellbook();
         } else {
-
+            board.recipe.showRecipe('pumpkin', this.cost);
         }
     }
 

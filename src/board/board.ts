@@ -5,12 +5,14 @@ import { Vector } from "../engine/vector.js";
 import { RenderText } from "../ui/renderObjects.js";
 import { BookSpell } from "./bookSpell.js";
 import { Item, ELEMENTS, ITEMTYPES, Rune, Ingredient, Spell } from "./item.js";
+import { Recipe } from "./recipe.js";
 
-enum states {
+export enum states {
 	ANIMATION,
 	GAMEPLAY,
 	BOARDUPDATE,
-	WAIT
+	WAIT,
+	STOP
 }
 
 const ITEMS = [
@@ -38,7 +40,7 @@ const ITEMS = [
 		"src": "batwings.png",
 		"type": ELEMENTS.OTHER,
 		"mode": ITEMTYPES.INGREDIENT,
-		"name": "batWings"
+		"name": "batwings"
 	},
 	{
 		"src": "pumpkin.png",
@@ -52,7 +54,7 @@ const ITEMS = [
 				board.clear(cell);
 			}
 		},
-		"cost": {"batWings" : 3}
+		"cost": {"batwings" : 3}
 	},
 	{
 		"src": "pumpkin.png",
@@ -66,7 +68,7 @@ const ITEMS = [
 				board.clear(cell);
 			}
 		},
-		"cost": {"batWings" : 3}
+		"cost": {"batwings" : 3, "pumpkin" : 6}
 	}
 ]
 
@@ -87,6 +89,8 @@ export class GameBoard {
 	private spellBookStart = new Vector(4, 124);
 	private spellBookDiv = 42;
 
+	public recipe: Recipe;
+
 	private game: Game;
 	public touch: TouchManager;
 
@@ -98,7 +102,7 @@ export class GameBoard {
 
 	private toClear: number[] = []
 
-	private state = states.GAMEPLAY;
+	public state: states = states.GAMEPLAY;
 	private animTimer = 0;
 	private waitTimer = 0;
 
@@ -138,6 +142,7 @@ export class GameBoard {
 		this.initItemPool();
 		game.createImage('sketchBG.png', Vector.ZERO());
 		this.scoreText = game.createText("0", new Vector(80, 80));
+		this.recipe = new Recipe(game);
 		for (let i = 0; i < this.size.x * this.size.y; i++) {
 			let pos = this.cellToPos(i);
 
@@ -534,6 +539,9 @@ export class GameBoard {
 				break;
 			case states.WAIT:
 				this.wait();
+				break;
+			case states.STOP:
+				break;
 		}
 
 

@@ -4,7 +4,6 @@ export class Button {
         this.position = pos;
         this.size = size;
         this.bgSrc = bgSrc;
-        this.img = game.createImage(this.bgSrc, this.position);
         this.effect = effect;
     }
     posIn(v) {
