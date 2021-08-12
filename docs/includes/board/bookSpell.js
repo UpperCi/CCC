@@ -20,18 +20,20 @@ export class BookSpell {
     genItem() {
         let board = this.game.board;
         let inv = board.inventory;
-        if (!this.affordable)
-            return;
-        for (let i of Object.keys(this.cost)) {
-            board.inventory[i] -= this.cost[i];
+        if (this.affordable) {
+            for (let i of Object.keys(this.cost)) {
+                board.inventory[i] -= this.cost[i];
+            }
+            let randomCell = Math.floor(Math.random() * board.size.x * board.size.y);
+            let spell = new Spell();
+            spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
+            this.game.removeImage(board.items[randomCell].image);
+            Object.assign(spell, this.spell);
+            board.items[randomCell] = spell;
+            board.updateSpellbook();
         }
-        let randomCell = Math.floor(Math.random() * board.size.x * board.size.y);
-        let spell = new Spell();
-        spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
-        this.game.removeImage(board.items[randomCell].image);
-        Object.assign(spell, this.spell);
-        board.items[randomCell] = spell;
-        board.updateSpellbook();
+        else {
+        }
     }
     get affordable() {
         let board = this.game.board;

@@ -105,7 +105,7 @@ export class Game {
             if (this.touch.justMoved) {
                 button.checkHover(this.touch.lastMove);
             }
-            if (button.hover && this.touch.justTapped) {
+            if (this.touch.justTapped && button.posIn(this.touch.lastTap)) {
                 button.effect();
             }
         }

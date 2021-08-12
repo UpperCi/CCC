@@ -22,7 +22,7 @@ export class Button {
         this.effect = effect;
     }
 
-    private posIn(v: Vector) : boolean {
+    public posIn(v: Vector) : boolean {
         let p = this.position;
         let s = this.size;
         return (v.x > p.x && v.x < p.x + s.x && v.y > p.y && v.y < p.y + s.y);
