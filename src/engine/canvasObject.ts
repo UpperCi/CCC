@@ -61,8 +61,8 @@ export class CanvasAnimatedImage extends CanvasImage {
         }
         let clipPos = this.currentFrame * this.frameWidth;
         if (this.visible) {
-            ctx.drawImage(this.img, clipPos, 0, this.img.height, this.frameWidth,
-            this.position.x, this.position.y, this.img.height, this.frameWidth);
+            ctx.drawImage(this.img, clipPos, 0, this.frameWidth, this.img.height,
+            this.position.x, this.position.y, this.frameWidth, this.img.height);
         }
     }
 }

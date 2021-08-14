@@ -92,7 +92,7 @@ export class Game {
 		requestAnimationFrame((ms: number) => this.loop(ms));
 	}
 
-	private addObj(obj: CanvasObject) {
+	public addObj(obj: CanvasObject) {
 		this.canvasObjs.push(obj);
 		// to-do. More efficiënt method than sorting everything everytime.
 		this.canvasObjs.sort((a: CanvasObject, b: CanvasObject) => {
@@ -129,6 +129,7 @@ export class Game {
 
 		return button;
 	}
+
 
 	public removeObj(obj: CanvasObject) : void {
 		let pos = this.canvasObjs.indexOf(obj);

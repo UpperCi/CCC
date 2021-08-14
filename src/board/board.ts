@@ -3,6 +3,7 @@ import { Game } from "../engine/game.js";
 import { TouchManager } from "../engine/touchManager.js";
 import { Vector } from "../engine/vector.js";
 import { BookSpell } from "./bookSpell.js";
+import { Healthbar } from "./healthbar.js";
 import { Item, ELEMENTS, ITEMTYPES, Rune, Ingredient, Spell } from "./item.js";
 import { Recipe } from "./recipe.js";
 
@@ -50,6 +51,7 @@ const ITEMS = [
 			let y = Math.floor(pos / board.size.x);
 			for (let i = 0; i < board.size.x; i++) {
 				let cell = y * board.size.x + i;
+				board.score(cell, 1.5);
 				board.clear(cell);
 			}
 		},
@@ -65,6 +67,7 @@ const ITEMS = [
 			for (let i = 0; i < board.size.x; i++) {
 				let cell = y * board.size.x + i;
 				board.clear(cell);
+
 			}
 		},
 		"cost": {"batwings" : 3, "pumpkin" : 6}
@@ -107,6 +110,8 @@ export class GameBoard {
 
 	private points = 0;
 	public inventory = {};
+	private hpBar: Healthbar;
+	private barBG: CanvasImage;
 	
 	private scoreText: CanvasText;
 
@@ -142,6 +147,11 @@ export class GameBoard {
 		game.createImage('sketchBG.png', Vector.ZERO());
 		this.scoreText = game.createText("0", new Vector(80, 80));
 		this.recipe = new Recipe(game);
+		this.hpBar = new Healthbar(new Vector(16, 9), 1000);
+		game.addObj(this.hpBar);
+		this.hpBar.updateHealth(0);
+		this.hpBar.zIndex = 10;
+		this.barBG = game.createImage('healthbarUnder.png', new Vector(16, 9));
 		for (let i = 0; i < this.size.x * this.size.y; i++) {
 			let pos = this.cellToPos(i);
 
@@ -272,6 +282,14 @@ export class GameBoard {
 		}
 	}
 
+	public score(pos: number, mod: number = 1) {
+		if (this.items[pos] != undefined && 'value' in this.items[pos]) {
+			this.points += this.items[pos].value * mod;
+			this.hpBar.updateHealth(this.points);
+			this.scoreText.text = this.points.toString();
+		}
+	}
+
 	public clear(pos: number) {
 		if (this.toClear.indexOf(pos) === -1) {
 			this.toClear.push(pos);
@@ -303,6 +321,7 @@ export class GameBoard {
 		}
 
 		this.points += points;
+		this.hpBar.updateHealth(this.points);
 		this.scoreText.text = this.points.toString();
 	}
 
