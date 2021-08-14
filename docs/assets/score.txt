@@ -1,0 +1,12 @@
+10 turns scores:
+- 1122
+- 2000
+- 1765
+- 1315
+- 2582
+
+consistently boven 1200, gemiddeld 1756
+
+Makkelijk: 100/beurt
+Gemiddeld: 120/beurt
+Moeilijk: 150/beurt

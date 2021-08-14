@@ -1,0 +1,137 @@
+import { GameBoard } from "../board/board.js";
+import { Button, CanvasAnimatedImage, CanvasImage, CanvasObject, CanvasText } from "./canvasObject.js";
+import { TouchManager } from "./touchManager.js";
+import { Vector } from "./vector.js";
+
+const GAMEMARGINS = 64;
+
+export class Game {
+	private canvas: HTMLCanvasElement;
+	private ctx: CanvasRenderingContext2D;
+	public touch: TouchManager;
+
+	public canvasSize: Vector = new Vector(160, 320);
+
+	private canvasObjs: CanvasObject[] = [];
+
+	public board: GameBoard;
+
+	private deltaTimestamp = 0
+	public delta = 0;
+	private frameCounter = 0;
+	private frameTimer = 0;
+	private frameRate = 0;
+
+	constructor() {
+		this.canvas = document.createElement('canvas');
+		this.canvas.width = this.canvasSize.x;
+		this.canvas.height = this.canvasSize.y;
+		this.touch = new TouchManager();
+		this.touch.initListeners();
+		this.ctx = this.canvas.getContext('2d', { alpha: false });
+		document.querySelector('body').appendChild(this.canvas);
+	}
+
+	private updateDisplaySize(): void {
+		let docSize = document.querySelector('html').getBoundingClientRect();
+		let w = docSize.width;
+		let h = docSize.height;
+
+		if (w * 2 > h) {
+			h = h - GAMEMARGINS;
+			w = h / 2;
+		} else {
+			w = w - GAMEMARGINS / 2;
+			h = w * 2;
+		}
+		this.canvas.style.height = `${Math.round(h)}px`;
+		this.canvas.style.width = `${Math.round(w)}px`;
+
+		this.board.touch.resMult = h / this.canvasSize.y;
+
+		this.canvas.style.left = `calc(50% - ${Math.round(w / 2)}px)`;
+		this.canvas.style.top = `calc(50% - ${Math.round(h / 2)}px)`;
+
+		let canvasBox = this.canvas.getBoundingClientRect();
+		this.board.touch.offset = new Vector(canvasBox.x, canvasBox.y)
+	}
+
+	public start(): void {
+		this.board = new GameBoard();
+		this.board.touch = this.touch;
+		this.board.generateBoard(this);
+		this.updateDisplaySize();
+		requestAnimationFrame((ms: number) => this.loop(ms));
+	}
+
+	public updateFrames(ms: number): void {
+		this.delta = (ms - this.deltaTimestamp) / 1000 * 60;
+		this.deltaTimestamp = ms;
+
+		this.frameTimer += this.delta / 60;
+		this.frameCounter++;
+		if (this.frameTimer > 1) {
+			this.frameTimer -= 1;
+			this.frameRate = this.frameCounter;
+			this.frameCounter = 0;
+		}
+	}
+
+	private loop(ms: number): void {
+		this.updateFrames(ms);
+
+		this.ctx.fillStyle = '#4b5bab';
+		this.ctx.fillRect(0, 0, this.canvasSize.x, this.canvasSize.y);
+
+		for (let i of this.canvasObjs) {
+			i.draw(this.ctx, this);
+		}
+
+		this.board.update();
+
+		requestAnimationFrame((ms: number) => this.loop(ms));
+	}
+
+	private addObj(obj: CanvasObject) {
+		this.canvasObjs.push(obj);
+		// to-do. More efficiënt method than sorting everything everytime.
+		this.canvasObjs.sort((a: CanvasObject, b: CanvasObject) => {
+			return a.zIndex - b.zIndex;
+		})
+	}
+
+	// create an animated image from a spritesheet
+	public createAnimation(src: string, w: number, pos: Vector, fps: number = 15, selfDestruct = false): CanvasAnimatedImage {
+		let anim = new CanvasAnimatedImage(src, w, pos, fps, selfDestruct);
+		this.addObj(anim);
+
+		return anim;
+	}
+
+	// creates an image object that will be rendered at given position
+	public createImage(src: string, pos: Vector): CanvasImage {
+		let image = new CanvasImage(src, pos);
+		this.addObj(image);
+
+		return image;
+	}
+
+	public createText(str: string, pos: Vector): CanvasText {
+		let text = new CanvasText(str, pos);
+		this.addObj(text);
+
+		return text;
+	}
+
+	public createButton(bgSrc: string, pos: Vector, size: Vector, effect: () => void): Button {
+		let button = new Button(bgSrc, pos, size, effect);
+		this.addObj(button);
+
+		return button;
+	}
+
+	public removeObj(obj: CanvasObject) : void {
+		let pos = this.canvasObjs.indexOf(obj);
+		this.canvasObjs.splice(pos, 1);
+	}
+}

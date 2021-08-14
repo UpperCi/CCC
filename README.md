@@ -72,4 +72,3 @@ Toelichting inheritance
 ## Game development technieken
 
 Beschrijving game development technieken
-  test
