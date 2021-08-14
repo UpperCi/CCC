@@ -50,7 +50,7 @@ Toelichting inheritance
 <Br>
 
 # Game
-
+ 
 Mijn nieuwe thema uit de [gaminator](https://hr-cmgt.github.io/gaminator/) is:_______________
 
 Toelichting gameplay:
