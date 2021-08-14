@@ -1,5 +1,3 @@
-## Candy Crush Clone
-
 # PRG04 HERKANSING eindopdracht 
 
 Wanneer je volledige eindcijfer (klassendiagram + afgeronde eindopdracht) een onvoldoende is kan je het hele project herkansen. 
@@ -50,7 +48,7 @@ Toelichting inheritance
 <Br>
 
 # Game
- 
+
 Mijn nieuwe thema uit de [gaminator](https://hr-cmgt.github.io/gaminator/) is:_______________
 
 Toelichting gameplay:
