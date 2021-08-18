@@ -12,7 +12,7 @@ export class Game {
 
 	public canvasSize: Vector = new Vector(160, 320);
 
-	private canvasObjs: CanvasObject[] = [];
+	private canvasObjs: CanvasObject[][] = [];
 
 	public board: GameBoard;
 
@@ -83,8 +83,28 @@ export class Game {
 		this.ctx.fillStyle = '#4b5bab';
 		this.ctx.fillRect(0, 0, this.canvasSize.x, this.canvasSize.y);
 
+		// kinda ugly but works
+		for (let i = 0; i < this.canvasObjs.length; i++) {
+			if (this.canvasObjs[i] != undefined) {
+				for (let j of this.canvasObjs[i]) {
+					if (j.zIndex != i) {
+						this.removeObj(j);
+						if (this.canvasObjs.length < j.zIndex + 1 || this.canvasObjs[j.zIndex] === undefined) {
+							this.canvasObjs[j.zIndex] = [j];
+						} else {
+							this.canvasObjs[j.zIndex].push(j);
+						}
+					}
+				}
+			}
+		}
+
 		for (let i of this.canvasObjs) {
-			i.draw(this.ctx, this);
+			if (i != undefined) {
+				for (let j of i) {
+					j.draw(this.ctx, this);
+				}
+			}
 		}
 
 		this.board.update();
@@ -93,11 +113,11 @@ export class Game {
 	}
 
 	public addObj(obj: CanvasObject) {
-		this.canvasObjs.push(obj);
-		// to-do. More efficiënt method than sorting everything everytime.
-		this.canvasObjs.sort((a: CanvasObject, b: CanvasObject) => {
-			return a.zIndex - b.zIndex;
-		})
+		if (this.canvasObjs.length < obj.zIndex + 1) {
+			this.canvasObjs[obj.zIndex] = [obj];
+		} else {
+			this.canvasObjs[obj.zIndex].push(obj);
+		}
 	}
 
 	// create an animated image from a spritesheet
@@ -130,9 +150,15 @@ export class Game {
 		return button;
 	}
 
-
 	public removeObj(obj: CanvasObject) : void {
-		let pos = this.canvasObjs.indexOf(obj);
-		this.canvasObjs.splice(pos, 1);
+		for (let i = 0; i < this.canvasObjs.length; i++) {
+			if (this.canvasObjs[i] == undefined) {
+				return;
+			}
+			let pos = this.canvasObjs[i].indexOf(obj);
+			if (pos != -1) {
+				this.canvasObjs[i].splice(pos, 1);
+			}	
+		}
 	}
 }

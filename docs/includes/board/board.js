@@ -47,7 +47,7 @@ const ITEMS = [
             let y = Math.floor(pos / board.size.x);
             for (let i = 0; i < board.size.x; i++) {
                 let cell = y * board.size.x + i;
-                board.score(cell, 1.5);
+                board.score(cell, 2);
                 board.clear(cell);
             }
         },

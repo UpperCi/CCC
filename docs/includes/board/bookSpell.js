@@ -22,20 +22,20 @@ export class BookSpell {
     }
     genItem() {
         let board = this.game.board;
-        if (this.affordable) {
-            for (let i of Object.keys(this.cost)) {
-                board.inventory[i] -= this.cost[i];
+        if (board.state == states.GAMEPLAY) {
+            if (this.affordable) {
+                for (let i of Object.keys(this.cost)) {
+                    board.inventory[i] -= this.cost[i];
+                }
+                let randomCell = Math.floor(Math.random() * board.size.x * board.size.y);
+                let spell = new Spell();
+                spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
+                this.game.removeObj(board.items[randomCell].image);
+                Object.assign(spell, this.spell);
+                board.items[randomCell] = spell;
+                board.updateSpellbook();
             }
-            let randomCell = Math.floor(Math.random() * board.size.x * board.size.y);
-            let spell = new Spell();
-            spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
-            this.game.removeObj(board.items[randomCell].image);
-            Object.assign(spell, this.spell);
-            board.items[randomCell] = spell;
-            board.updateSpellbook();
-        }
-        else {
-            if (board.state != states.STOP) {
+            else {
                 board.recipe.showRecipe('pumpkin', this.cost);
             }
         }
