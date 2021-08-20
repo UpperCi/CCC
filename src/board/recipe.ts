@@ -11,7 +11,9 @@ const ITEMS = {
     "pumpkin" : {
         "enabled": "pumpkin.png",
         "disabled": "pumpkinDisabled.png"
-    }
+    },
+    "firebolt": "firebolt.png",
+    "poison": "poison.png"
 }
 
 // shows details of a recipe, different class bc it might be used in a few different places
@@ -30,11 +32,11 @@ export class Recipe {
         this.bg.zIndex = 25;
     }
 
-    public showRecipe(item: string, recipe: Object) {
+    public showRecipe(itemSrc: string, recipe: Object) {
         this.bg.zIndex = 20;
         this.bg.visible = true;
         let inv = this.game.board.inventory;
-        let itemSprite = this.game.createImage(ITEMS[item]['enabled'], new Vector(38, 5).add(this.offset));
+        let itemSprite = this.game.createAnimation(itemSrc, 18, new Vector(38, 5).add(this.offset), 10, false);
         this.items.push(itemSprite);
         itemSprite.zIndex = 30;
         for (let i = 0; i < Object.keys(recipe).length; i++) {
@@ -53,7 +55,7 @@ export class Recipe {
                 let src = ITEMS[key][(j < invIndex) ? 'enabled' : 'disabled'];
                 let img = this.game.createImage(src, new Vector(x, y).add(this.offset))
                 this.items.push(img);
-                img.zIndex = 30;
+                img.zIndex = 30 + j;
             }
         }
         this.returnState = this.game.board.state;

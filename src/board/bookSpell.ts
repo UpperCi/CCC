@@ -1,11 +1,11 @@
-import { CanvasImage, Button } from "../engine/canvasObject.js";
+import { CanvasImage, Button, CanvasAnimatedImage } from "../engine/canvasObject.js";
 import { Game } from "../engine/game.js";
 import { Vector } from "../engine/vector.js";
 import { states } from "./board.js";
 import { Spell } from "./item.js";
 
 export class BookSpell {
-    public sprite: CanvasImage;
+    public sprite: CanvasAnimatedImage;
     public spell: Spell;
     public cost: Object = {};
     public btn: Button;
@@ -16,7 +16,7 @@ export class BookSpell {
     constructor(pos: Vector, game: Game, src: string, spell: Spell, cost: Object) {
         // deep copy of Vectorm without this the same Vector object gets used for all pages
         pos = new Vector(pos.x, pos.y);
-        this.sprite = game.createImage(src, pos.add(new Vector(6, 6)));
+        this.sprite = game.createAnimation(src, 18, pos.add(new Vector(6, 6)), 10, false);
         this.spell = spell;
         this.spriteSrc = src;
         this.cost = cost;
@@ -43,7 +43,9 @@ export class BookSpell {
         
                 let randomCell = Math.floor(Math.random() * board.size.x * board.size.y);
                 let spell = new Spell();
-                spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
+                
+                // spell.image = this.game.createImage(this.spriteSrc, board.cellToPos(randomCell));
+                spell.image = this.game.createAnimation(this.spriteSrc, 18, board.cellToPos(randomCell), 10, false);
                 
                 this.game.removeObj(board.items[randomCell].image);
         
@@ -52,7 +54,7 @@ export class BookSpell {
         
                 board.updateSpellbook();
             } else {
-                board.recipe.showRecipe('pumpkin', this.cost);
+                board.recipe.showRecipe(this.spriteSrc, this.cost);
             }
         }
         

@@ -41,8 +41,13 @@ const ITEMS = [
     {
         "src": "pumpkin.png",
         "type": ELEMENTS.OTHER,
+        "mode": ITEMTYPES.INGREDIENT,
+        "name": "pumpkin"
+    },
+    {
+        "src": "firebolt.png",
+        "type": ELEMENTS.OTHER,
         "mode": ITEMTYPES.SPELL,
-        "name": "pumpkin",
         "onUse": (board, pos, game) => {
             let y = Math.floor(pos / board.size.x);
             for (let i = 0; i < board.size.x; i++) {
@@ -54,18 +59,39 @@ const ITEMS = [
         "cost": { "batwings": 3 }
     },
     {
-        "src": "pumpkin.png",
+        "src": "poison.png",
         "type": ELEMENTS.OTHER,
         "mode": ITEMTYPES.SPELL,
-        "name": "pumpkin",
         "onUse": (board, pos, game) => {
+            let x = pos % board.size.x;
             let y = Math.floor(pos / board.size.x);
-            for (let i = 0; i < board.size.x; i++) {
-                let cell = y * board.size.x + i;
-                board.clear(cell);
+            for (let i = 0; i < board.size.x * board.size.y; i++) {
+                let cellX = i % board.size.x;
+                let cellY = Math.floor(i / board.size.x);
+                if ((Math.abs(x - cellX) + Math.abs(y - cellY)) <= 2) {
+                    board.score(i, 2);
+                    board.clear(i);
+                }
             }
         },
-        "cost": { "batwings": 3, "pumpkin": 6 }
+        "cost": { "pumpkin": 4 }
+    },
+    {
+        "src": "runeClear.png",
+        "type": ELEMENTS.OTHER,
+        "mode": ITEMTYPES.SPELL,
+        "onUse": (board, pos, game) => {
+            let x = pos % board.size.x;
+            let y = Math.floor(pos / board.size.x);
+            for (let i = 0; i < board.size.x * board.size.y; i++) {
+                let item = board.items[i];
+                if (item != undefined && item.type == ELEMENTS.WATER) {
+                    board.score(i, 1);
+                    board.clear(i);
+                }
+            }
+        },
+        "cost": { "pumpkin": 4, "batwings": 4 }
     }
 ];
 export class GameBoard {
@@ -73,7 +99,7 @@ export class GameBoard {
         this.size = new Vector(7, 7);
         this.items = [];
         // declares which items (of ITEMS array) can naturally generate
-        this.itemTypes = [0, 1, 2, 3, 4, 5, 6];
+        this.itemTypes = [0, 1, 2, 3, 4, 5, 6, 7, 8];
         this.itemGenerationPool = [];
         this.itemPool = [];
         this.totalItemWeight = 0;
@@ -83,7 +109,7 @@ export class GameBoard {
         this.cellStart = new Vector(11, 171);
         // used to calc positions to draw spells
         this.spellBookStart = new Vector(4, 124);
-        this.spellBookDiv = 42;
+        this.spellBookDiv = 40;
         this.generatedItems = [];
         this.trackedItem = -1;
         this.toClear = [];
@@ -123,7 +149,7 @@ export class GameBoard {
         this.scoreText = game.createText("0", new Vector(80, 80));
         this.scoreText.zIndex = 2;
         this.recipe = new Recipe(game);
-        this.hpBar = new Healthbar(new Vector(16, 9), 1000);
+        this.hpBar = new Healthbar(new Vector(16, 9), 2000);
         game.addObj(this.hpBar);
         this.hpBar.updateHealth(0);
         this.hpBar.zIndex = 10;
@@ -546,7 +572,7 @@ export class GameBoard {
             else if (itemData.mode == ITEMTYPES.SPELL) {
                 let spell = new Spell();
                 spell['use'] = itemData['onUse'];
-                let pos = this.spellBookStart;
+                let pos = new Vector(this.spellBookStart.x, this.spellBookStart.y);
                 pos.x += (this.spellBook.length) * this.spellBookDiv;
                 let page = new BookSpell(pos, this.game, itemData['src'], spell, itemData['cost']);
                 this.spellBook.push(page);

@@ -31,7 +31,7 @@ export class CanvasAnimatedImage extends CanvasImage {
         if (this.fpsTimer > this.frameTime) {
             this.fpsTimer -= this.frameTime;
             this.currentFrame++;
-            if (this.currentFrame > this.frames) {
+            if (this.currentFrame >= this.frames) {
                 if (this.selfDestruct) {
                     game.removeObj(this);
                 }
