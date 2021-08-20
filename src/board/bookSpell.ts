@@ -16,7 +16,7 @@ export class BookSpell {
     constructor(pos: Vector, game: Game, src: string, spell: Spell, cost: Object) {
         // deep copy of Vectorm without this the same Vector object gets used for all pages
         pos = new Vector(pos.x, pos.y);
-        this.sprite = game.createAnimation(src, 18, pos.add(new Vector(6, 6)), 10, false);
+        this.sprite = game.createAnimation(src, 18, pos.add(new Vector(6, 7)), 10, false);
         this.spell = spell;
         this.spriteSrc = src;
         this.cost = cost;
