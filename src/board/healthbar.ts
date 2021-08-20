@@ -4,7 +4,7 @@ import { Vector } from "../engine/vector.js";
 
 export class Healthbar extends CanvasImage {
     public hp: number = 0;
-    private maxHealth: number = 1000;
+    private maxHealth: number = 100;
     private clip: number = 0;
 
     constructor(pos: Vector, maxHealth: number) {
@@ -17,7 +17,8 @@ export class Healthbar extends CanvasImage {
         if (this.visible) {
             let w = this.img.width;
             let h = this.img.height;
-            ctx.drawImage(this.img, 0, 0, this.clip, h, this.position.x, this.position.y, this.clip, h);
+            // clips part of image based on remaining health
+            ctx.drawImage(this.img, 0, 0, this.clip, h, this.position.x, this.position.y, Math.ceil(this.clip), h);
         }
     }
 

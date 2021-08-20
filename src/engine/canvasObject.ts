@@ -67,7 +67,7 @@ export class CanvasAnimatedImage extends CanvasImage {
     }
 }
 
-// text. Supports fonts n colors
+// text drawn onto canvas
 export class CanvasText implements CanvasObject {
     public visible: boolean = true;
     public zIndex: number = 0;
@@ -127,6 +127,11 @@ export class Button extends CanvasImage implements CanvasObject {
         super.draw(ctx, game);
         if (game.touch.justMoved) {
             this.checkHover(game.touch.lastMove);
+            if (this.hover) {
+                game.canvas.style.cursor = 'pointer';
+            } else {
+                game.canvas.style.cursor = 'default';
+            }
         }
         if (game.touch.justTapped && this.posIn(game.touch.lastTap)) {
             this.effect();

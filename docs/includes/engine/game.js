@@ -41,10 +41,12 @@ export class Game {
         this.board.touch.offset = new Vector(canvasBox.x, canvasBox.y);
     }
     start() {
+        this.canvasObjs = [];
         this.board = new GameBoard();
         this.board.touch = this.touch;
         this.board.generateBoard(this);
         this.updateDisplaySize();
+        window.addEventListener('resize', () => this.updateDisplaySize());
         requestAnimationFrame((ms) => this.loop(ms));
     }
     updateFrames(ms) {
@@ -62,7 +64,7 @@ export class Game {
         this.updateFrames(ms);
         this.ctx.fillStyle = '#4b5bab';
         this.ctx.fillRect(0, 0, this.canvasSize.x, this.canvasSize.y);
-        // kinda ugly but works
+        // works, kind of
         for (let i = 0; i < this.canvasObjs.length; i++) {
             if (this.canvasObjs[i] != undefined) {
                 for (let j of this.canvasObjs[i]) {
@@ -121,7 +123,7 @@ export class Game {
     removeObj(obj) {
         for (let i = 0; i < this.canvasObjs.length; i++) {
             if (this.canvasObjs[i] == undefined) {
-                return;
+                continue;
             }
             let pos = this.canvasObjs[i].indexOf(obj);
             if (pos != -1) {

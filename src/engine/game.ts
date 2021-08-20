@@ -6,7 +6,7 @@ import { Vector } from "./vector.js";
 const GAMEMARGINS = 64;
 
 export class Game {
-	private canvas: HTMLCanvasElement;
+	public canvas: HTMLCanvasElement;
 	private ctx: CanvasRenderingContext2D;
 	public touch: TouchManager;
 
@@ -57,10 +57,12 @@ export class Game {
 	}
 
 	public start(): void {
+		this.canvasObjs = [];
 		this.board = new GameBoard();
 		this.board.touch = this.touch;
 		this.board.generateBoard(this);
 		this.updateDisplaySize();
+		window.addEventListener('resize', () => this.updateDisplaySize());
 		requestAnimationFrame((ms: number) => this.loop(ms));
 	}
 
@@ -83,7 +85,7 @@ export class Game {
 		this.ctx.fillStyle = '#4b5bab';
 		this.ctx.fillRect(0, 0, this.canvasSize.x, this.canvasSize.y);
 
-		// kinda ugly but works
+		// works, kind of
 		for (let i = 0; i < this.canvasObjs.length; i++) {
 			if (this.canvasObjs[i] != undefined) {
 				for (let j of this.canvasObjs[i]) {
@@ -153,7 +155,7 @@ export class Game {
 	public removeObj(obj: CanvasObject) : void {
 		for (let i = 0; i < this.canvasObjs.length; i++) {
 			if (this.canvasObjs[i] == undefined) {
-				return;
+				continue;
 			}
 			let pos = this.canvasObjs[i].indexOf(obj);
 			if (pos != -1) {

@@ -78,16 +78,17 @@ export class GameBoard {
 	public size: Vector = new Vector(7, 7);
 
 	public items: Item[] = [];
+	// declares which items (of ITEMS array) can naturally generate
 	private itemTypes = [0, 1, 2, 3, 4, 5, 6];
 	private itemGenerationPool: number[] = [];
 	private itemPool: Item[] = [];
 	private totalItemWeight = 0;
 	
 	private spellBook: BookSpell[] = [];
-
+	// used to calc positions to draw cells
 	private cellSize = new Vector(20, 20);
 	private cellStart = new Vector(11, 171);
-
+	// used to calc positions to draw spells
 	private spellBookStart = new Vector(4, 124);
 	private spellBookDiv = 42;
 
@@ -120,7 +121,7 @@ export class GameBoard {
 			this.itemTypes = itemTypes;
 		}
 	}
-
+	// returns a deep copy of a random item from the generation pool, takes generation weights into account
 	private randomItem(): Item {
 		let n = Math.floor(Math.random() * this.totalItemWeight);
 
@@ -140,7 +141,7 @@ export class GameBoard {
 
 		return this.itemPool[0];
 	}
-
+	// generates initial board
 	public generateBoard(game: Game) {
 		this.game = game;
 		this.initItemPool();
@@ -152,6 +153,7 @@ export class GameBoard {
 		this.hpBar.updateHealth(0);
 		this.hpBar.zIndex = 10;
 		this.barBG = game.createImage('healthbarUnder.png', new Vector(16, 9));
+
 		for (let i = 0; i < this.size.x * this.size.y; i++) {
 			let pos = this.cellToPos(i);
 
@@ -160,6 +162,7 @@ export class GameBoard {
 			let leftItem = this.items[i - 1];
 			let upItem = this.items[i - this.size.x];
 
+			// loop that makes sure that this doesn't generate 3 of the same item in a row as to avoid already matching tiles
 			while (true) {
 				let matching = false
 
@@ -183,7 +186,7 @@ export class GameBoard {
 					break;
 				}
 			}
-
+			// keep track of how many of each type of item has been generated, only used for debugging
 			if (item.type in this.generatedItems) {
 				this.generatedItems[item.type]++;
 			} else {
@@ -196,19 +199,19 @@ export class GameBoard {
 		this.highlight = this.game.createImage('highlight.png', new Vector(-20, 0));
 		this.updateItems();
 	}
-
+	// check if position is inside the playing field
 	private inBounds(v: Vector): boolean {
 		let cellEnd = this.cellStart.add(this.cellSize.multiply(this.size)).subtract(new Vector(1, 1));
 		return (v.x > this.cellStart.x && v.y > this.cellStart.y && v.x < cellEnd.x && v.y < cellEnd.y);
 	}
-
+	// returns coords that indicate which cell a vector is touching
 	private posToCell(v: Vector): Vector {
 		v = v.subtract(this.cellStart);
 		v.x = Math.floor(v.x / this.cellSize.x);
 		v.y = Math.floor(v.y / this.cellSize.y);
 		return v;
 	}
-
+	// convert number of cell to a position
 	public cellToPos(c: number): Vector {
 		let v = Vector.ZERO();
 		v.x = c % this.size.x;
@@ -236,7 +239,7 @@ export class GameBoard {
 			i.updateLook();
 		}
 	}
-
+	// check if item [i] is matching either vertically or horizontally, uses recursion to track how long the chain is
 	private compareItems(i: number, vertical = false, count = 1): number {
 		let increment = vertical ? this.size.x : 1;
 
@@ -255,7 +258,6 @@ export class GameBoard {
 				return this.compareItems(i + increment, vertical, count + 1);
 			}
 		}
-
 		return count;
 	}
 
@@ -264,7 +266,7 @@ export class GameBoard {
 			this.clear(i);
 		}
 	}
-
+	// called when a rune is cleared to clear any adjacent ingredients
 	private checkAdjacent(i: number) {
 		let x = i % this.size.x;
 		let y = Math.floor(i / this.size.x);
@@ -281,7 +283,7 @@ export class GameBoard {
 			this.checkIngredient(i + this.size.x);
 		}
 	}
-
+	// adds value of cell to the score
 	public score(pos: number, mod: number = 1) {
 		if (this.items[pos] != undefined && 'value' in this.items[pos]) {
 			this.points += this.items[pos].value * mod;
@@ -295,7 +297,7 @@ export class GameBoard {
 			this.toClear.push(pos);
 		}
 	}
-
+	// update points and vertical/horizontal clear values of items
 	private toClearItems(start: number, n: number, vertical: boolean): void {
 		if (n < 3) {
 			return;
@@ -324,7 +326,7 @@ export class GameBoard {
 		this.hpBar.updateHealth(this.points);
 		this.scoreText.text = this.points.toString();
 	}
-
+	// check which items need to be cleared and mark those
 	private updateItems(): void {
 		for (let i = 0; i < this.items.length; i++) {
 			let x = i % this.size.x;
@@ -339,7 +341,7 @@ export class GameBoard {
 			}
 		}
 	}
-
+	// actually clear all marked items
 	private clearItems(): void {
 		this.toClear.sort((a, b) => a - b);
 		let toGen = [];
@@ -348,7 +350,7 @@ export class GameBoard {
 			this.game.removeObj(this.items[i].image);
 			this.game.createAnimation('explosion.png', 22, this.cellToPos(i), 15, true);
 			this.items[i] = undefined;
-
+			// if ingredient, add to inventory
 			if (item instanceof Ingredient) {
 				let name = item.name;
 				if (!(name in this.inventory)) {
@@ -357,13 +359,14 @@ export class GameBoard {
 					this.inventory[name]++;
 				}
 				console.log(this.inventory);
+			// if spell, activate effect
 			} else if (item instanceof Spell) {
 				item.use(this, i, this.game);
 			}
 		}
 
 		for (let i = 0; i < this.items.length; i++) {
-			// if it encounters a hole, everything above it will be moved one cell down
+			// if hole is encountered, everything above will be moved one cell down
 			if (this.items[i] == undefined) {
 				let depth = Math.floor(i / this.size.x);
 				let x = i % this.size.x;
@@ -539,34 +542,46 @@ export class GameBoard {
 		}
 	}
 
+	private checkHP(): void {
+		if (this.hpBar.hp <= 0) {
+			this.state = states.STOP;
+			let btn = this.game.createButton("retry.png", new Vector(50, 130), new Vector(60, 60),
+			() => {
+				this.game.start();
+			});
+			btn.hoverSrc = "retryHover.png";
+			btn.zIndex = 100;
+		} 
+	}
+
 	public update() {
 		switch (this.state) {
-			case states.GAMEPLAY:
+			case states.GAMEPLAY: // react to player input
 				this.itemGrabUpdate();
 				this.hoverUpdate();
 				this.holdUpdate();
 				break;
-			case states.ANIMATION:
+			case states.ANIMATION: // play item animations
 				this.updateHighlight(new Vector(-20, 0));
 				this.animUpdate();
 				break;
-			case states.BOARDUPDATE:
+			case states.BOARDUPDATE: // check what needs to be cleared
 				this.updateItems();
 				this.clearItems();
 				this.updateSpellbook()
+				this.checkHP();
 				break;
-			case states.WAIT:
+			case states.WAIT: // wait
 				this.wait();
 				break;
-			case states.STOP:
+			case states.STOP: // wait indefinitely
 				// this.game.fillRect('rgba(0,0,0,0.5)', 0, 0, this.game.canvasSize.x, this.game.canvasSize.y);
 				break;
 		}
 
-
 		this.touch.update();
 	}
-
+	// initialise item classes based on data in the ITEMS constant, add those to generatable items
 	private initItemPool() {
 		let currentItemWeight = 0
 		for (let i of this.itemTypes) {
@@ -589,8 +604,7 @@ export class GameBoard {
 				pos.x += (this.spellBook.length) * this.spellBookDiv;
 				let page = new BookSpell(pos, this.game, itemData['src'], spell, itemData['cost']);
 				this.spellBook.push(page);
-				console.log(pos)
-				continue;
+				continue; // skips rest as spells don't naturally generate
 			}
 			item.src = itemData.src;
 
