@@ -190,6 +190,7 @@ export class GameBoard {
                 this.generatedItems[item.type] = 1;
             }
             item.image = game.createImage(item.src, pos);
+            item.image.zIndex = 1;
             this.items.push(item);
         }
         this.highlight = this.game.createImage('highlight.png', new Vector(-20, 0));
@@ -390,6 +391,7 @@ export class GameBoard {
                 let item = this.randomItem();
                 this.items[pos] = item;
                 item.image = this.game.createImage(item.src, this.cellToPos(startPos));
+                item.image.zIndex = 1;
                 // the items need to fall into their place
                 this.animItem(item, pos, 3);
             }

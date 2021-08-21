@@ -52,7 +52,7 @@ export class CanvasText {
         this.visible = true;
         this.zIndex = 0;
         this.align = "center";
-        this.font = "Arial 24px";
+        this.font = "Arial 16px";
         this.fill = "#fff";
         this.position = pos;
         this.text = text;

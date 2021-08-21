@@ -75,7 +75,7 @@ export class CanvasText implements CanvasObject {
     public position: Vector;
     public text: string;
     public align: CanvasTextAlign = "center";
-    public font: string = "Arial 24px"
+    public font: string = "Arial 16px"
     public fill: string = "#fff";
 
     constructor(text: string, pos: Vector) {
