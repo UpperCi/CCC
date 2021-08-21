@@ -175,11 +175,11 @@ export class GameBoard {
 		this.scoreText = game.createText("0", new Vector(80, 80));
 		this.scoreText.zIndex = 2;
 		this.recipe = new Recipe(game);
-		this.hpBar = new Healthbar(new Vector(16, 9), 2000);
+		this.hpBar = new Healthbar(new Vector(6, 9), 2000);
 		game.addObj(this.hpBar);
 		this.hpBar.updateHealth(0);
 		this.hpBar.zIndex = 10;
-		this.barBG = game.createImage('healthbarUnder.png', new Vector(16, 9));
+		this.barBG = game.createImage('healthbarUnder.png', new Vector(6, 9));
 		game.createImage('robot.png', new Vector(40, 32));
 
 		for (let i = 0; i < this.size.x * this.size.y; i++) {

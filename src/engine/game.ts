@@ -22,6 +22,9 @@ export class Game {
 	private frameTimer = 0;
 	private frameRate = 0;
 
+	private fullScreen = false;
+	private fsBtn: Button;
+
 	constructor() {
 		this.canvas = document.createElement('canvas');
 		this.canvas.width = this.canvasSize.x;
@@ -31,18 +34,42 @@ export class Game {
 		this.ctx = this.canvas.getContext('2d', { alpha: false });
 		document.querySelector('body').appendChild(this.canvas);
 	}
+	
+	private toggleFullscreen() { // thx W3schools: https://www.w3schools.com/howto/howto_js_fullscreen.asp
+		let elem = document.documentElement;
+		if (!this.fullScreen && elem.requestFullscreen) {
+			elem.requestFullscreen();
+			this.fullScreen = true;
+			this.fsBtn.bgSrc = "unfullscreen.png";
+		} else if (this.fullScreen && document.exitFullscreen) {
+			document.exitFullscreen();
+			this.fullScreen = false;
+			this.fsBtn.bgSrc = "fullscreen.png";
+		}
+	}
 
-	private updateDisplaySize(): void {
+	private updateDisplaySize(doMargins = true): void {
 		let docSize = document.querySelector('html').getBoundingClientRect();
 		let w = docSize.width;
 		let h = docSize.height;
 
-		if (w * 2 > h) {
-			h = h - GAMEMARGINS;
-			w = h / 2;
+		if (doMargins) {
+			if (w * 2 > h) {
+				h = h - GAMEMARGINS;
+				w = h / 2;
+			} else {
+				w = w - GAMEMARGINS / 2;
+				h = w * 2;
+			}
 		} else {
-			w = w - GAMEMARGINS / 2;
-			h = w * 2;
+			if (w * 2 > h) {
+				h = h;
+				w = h / 2;
+			} else {
+				w = w;
+				h = w * 2;
+			}
+
 		}
 		this.canvas.style.height = `${Math.round(h)}px`;
 		this.canvas.style.width = `${Math.round(w)}px`;
@@ -62,8 +89,10 @@ export class Game {
 		this.board.touch = this.touch;
 		this.board.generateBoard(this);
 		this.updateDisplaySize();
-		window.addEventListener('resize', () => this.updateDisplaySize());
+		window.addEventListener('resize', () => this.updateDisplaySize(!this.fullScreen));
 		requestAnimationFrame((ms: number) => this.loop(ms));
+		this.fsBtn = this.createButton("fullscreen.png", new Vector(134, 6), new Vector(20, 20), () => this.toggleFullscreen());
+		this.fsBtn.zIndex = 100;
 	}
 
 	public updateFrames(ms: number): void {
@@ -152,7 +181,7 @@ export class Game {
 		return button;
 	}
 
-	public removeObj(obj: CanvasObject) : void {
+	public removeObj(obj: CanvasObject): void {
 		for (let i = 0; i < this.canvasObjs.length; i++) {
 			if (this.canvasObjs[i] == undefined) {
 				continue;
@@ -160,7 +189,7 @@ export class Game {
 			let pos = this.canvasObjs[i].indexOf(obj);
 			if (pos != -1) {
 				this.canvasObjs[i].splice(pos, 1);
-			}	
+			}
 		}
 	}
 }

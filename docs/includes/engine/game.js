@@ -12,6 +12,7 @@ export class Game {
         this.frameCounter = 0;
         this.frameTimer = 0;
         this.frameRate = 0;
+        this.fullScreen = false;
         this.canvas = document.createElement('canvas');
         this.canvas.width = this.canvasSize.x;
         this.canvas.height = this.canvasSize.y;
@@ -20,17 +21,42 @@ export class Game {
         this.ctx = this.canvas.getContext('2d', { alpha: false });
         document.querySelector('body').appendChild(this.canvas);
     }
-    updateDisplaySize() {
+    toggleFullscreen() {
+        let elem = document.documentElement;
+        if (!this.fullScreen && elem.requestFullscreen) {
+            elem.requestFullscreen();
+            this.fullScreen = true;
+            this.fsBtn.bgSrc = "unfullscreen.png";
+        }
+        else if (this.fullScreen && document.exitFullscreen) {
+            document.exitFullscreen();
+            this.fullScreen = false;
+            this.fsBtn.bgSrc = "fullscreen.png";
+        }
+    }
+    updateDisplaySize(doMargins = true) {
         let docSize = document.querySelector('html').getBoundingClientRect();
         let w = docSize.width;
         let h = docSize.height;
-        if (w * 2 > h) {
-            h = h - GAMEMARGINS;
-            w = h / 2;
+        if (doMargins) {
+            if (w * 2 > h) {
+                h = h - GAMEMARGINS;
+                w = h / 2;
+            }
+            else {
+                w = w - GAMEMARGINS / 2;
+                h = w * 2;
+            }
         }
         else {
-            w = w - GAMEMARGINS / 2;
-            h = w * 2;
+            if (w * 2 > h) {
+                h = h;
+                w = h / 2;
+            }
+            else {
+                w = w;
+                h = w * 2;
+            }
         }
         this.canvas.style.height = `${Math.round(h)}px`;
         this.canvas.style.width = `${Math.round(w)}px`;
@@ -46,8 +72,10 @@ export class Game {
         this.board.touch = this.touch;
         this.board.generateBoard(this);
         this.updateDisplaySize();
-        window.addEventListener('resize', () => this.updateDisplaySize());
+        window.addEventListener('resize', () => this.updateDisplaySize(!this.fullScreen));
         requestAnimationFrame((ms) => this.loop(ms));
+        this.fsBtn = this.createButton("fullscreen.png", new Vector(134, 6), new Vector(20, 20), () => this.toggleFullscreen());
+        this.fsBtn.zIndex = 100;
     }
     updateFrames(ms) {
         this.delta = (ms - this.deltaTimestamp) / 1000 * 60;
