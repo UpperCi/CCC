@@ -62,7 +62,7 @@ Met `add` en `subtract` kun je bij de `Vector` een andere `Vector` optellen/ aft
 Met `multiply` en `divide` kun je de `Vector` vermenigvuldigen met/ delen door een andere `Vector` óf een getal! Bij een `Vector` is het `v1.x * v2.x; v1.y * v2.y` en bij een getal wordt op de X en de Y hetzelfde getal toegepast.<br><br>
 Let Op! Bij alle functies hierboven wordt het resultaat niet toegepast op de `Vector` waarop je de functie uitvoert maar wordt er een nieuwe `Vector` teruggegeven met het resultaat.<br><br>
 `normalize` geeft een `Vector` die dezelfde 'richting' op gaat maar een lengte heeft van 1.<br><br>
-Met dank aan Pythagoras heb ik een `length`-getter kunnen implementeren die de lengte van de `Vector` teruggeeft.
+Shoutout naar Pythagoras want dankzij hem heb ik een `length`-getter kunnen implementeren die de lengte van de `Vector` teruggeeft.
 
 ### CanvasObject
 Een interface die door alle objecten die moeten worden gerendered, b.v. `CanvasImage` en `CanvasText`, wordt geïmplementeerd.<br><br>
@@ -130,6 +130,63 @@ ctx.textAlign = this.align;
 ctx.fillStyle = this.fill;
 ctx.fillText(this.text, this.position.x, this.position.y);
 ```
+
+### GameBoard
+Veruit de grootste class. Handelt zegmaar alle echte game-logica af als items genereren, input verwerken en score bijhouden.<br><br>
+Het allereerste wat `GameBoard` is `generateBoard` oproepen. Ter voorbereiding wordt aan het begin van deze functie `initItemPool` opgeroepen. In hetzelfde bestand staat een constant die de data van alle items bevat. `Itemtypes` geeft aan welk van deze items er ge-initialiseerd moeten worden. Er wordt door deze items geïtereerd en op basis van de data worden dingen als de sprite, itemType (`Rune`, `Ingredient`, `Spell`) en punten bepaald. Voor elk van deze bundels data wordt een class gegenereerd en toegevoegd aan `itemPool`.<br><br>
+Na dat worden `recipe`, `hpBar`, `barBG` en `scoreText` gedefiniëerd. Dit zijn allemaal visuele elementen, de meeste spreken voor zich. `recipe` is gewoon een instantie van de class `Recipe`.<br><br>
+Als dat allemaal uit de weg is doet `generateBoard` eindelijk wat het belooft. `size` geeft aan hoeveel rijen en kolommen het veld-raster heeft, dit op basis hiervan worden een aantal willekeurige item gegenereerd om het veld mee op te vullen. Deze worden gepusht naar de `items` array. Alles wordt op een manier gegenereerd dat het veld niet begint met al matchende vakjes. `highlight` wordt gedefiniëerd, dit is een afbeelding die m.b.v. `updateHighlight` een specifiek vakje in het raster kan... highlighten. (gewoon transparant wit vierkant)<br><br>
+`inBounds` neemt een `Vector` en kijkt of deze zich binnen de randen van het speelveld bevindt zodat ik niet per ongeluk probeer een niet-bestaande cel op te roepen. Returnt gwn true of false.<br><br>
+`posToCell` neemt een `Vector` die een pixel op de canvas aanwijst en geeft terug een `Vector` met de X en Y coords van de corresponderende cel. Meestal gebruik ik een getal om een cel aan te geven maar hier koos ik voor een `Vector` zodat ik een paar dingen iets korter kon schrijven.<br><br>
+`cellToPos` neemt een getal die een cel aangeeft en geeft een `Vector` terug die de pixel aanwijst van waar de linkerbovenhoek van deze cel zich bevindt. Handig als ik iets op een bepaalde cel wil tekenen.<br><br>
+`clear` neemt een cel en markeert dat deze moet exploderen. Gaat meestal gecombineerd met `score` die een cel neemt en de `value` hiervan optelt bij de `points` van de speler. (wordt dus ook meteen van de hp van de hpBar afgehaald)<br><br>
+Om alles wat overzichtelijker te maken heb ik van deze class een state machine gemaakt. In de update functie wordt `state` geëvalueerd met een switch-case statement. Er zijn 5 states:
+#### GAMEPLAY
+GAMEPLAY is de 'standaard' state. Deze wacht op input van de speler en reageert wanneer het dit krijgt.<br><br>
+`hoverUpdate` zorgt ervoor dat de positie van `highlight` de cel reflecteert waar de muis zich boven bevindt.<br><br>
+`itemGrabUpdate` kijkt elke frame of er op een een cel wordt getikt. Zo ja, dan wordt de cel in `trackedItem` opgeslagen en het object in die cel in `trackedItemRef`.<br><br>
+`itemReleaseUpdate` kijkt wanneer je een item loslaat. Als je dit op een aangrenzende cel doet worden de objecten in deze cel en degene die je vast hebt gepakt omgewisseld. M.b.v. `animItem` wordt er een simpele animatie voor beide items ingesteld en vervolgens veranderd `state` naar WAIT.
+#### WAIT
+WAIT doet wat het zegt, niks...<br><br><br> Elke frame wordt `waitTimer` afgeteld en wanneer dit onder de 0 komt veranderd de state naar ANIMATION. Hoe lang er moet worden gewacht wordt bepaald door `waitTimer` een waarde te geven (voordat je `state` aanpast).
+#### ANIMATION
+ANIMATION speelt animaties af. Een animatie is niet meer dan dat de afbeelding van een item van positie A naar positie B wordt bewogen, zo kan ik b.v. items laten 'vallen' in plaats van dat ze direct op hun nieuwe plek terechtkomen. `animTimer` geeft aan hoe lang deze staat actief moet zijn. Hier wordt elke frame het aantal seconden sinds de laatste frame van af gehaald en wanneer dit onder de 0 terechtkomt veranderd `state` naar BOARDUPDATE.<br><br>
+`animUpdate` gaat langs alle items, indien er bij een item gemarkeerd staat dat het een animatie moet afspelen wordt de item bewogen richting zijn einddoel. Het beginpunt, einddoel en de snelheid worden in de `Item` class zelf bepaald.
+#### BOARDUPDATE
+BOARDUPDATE evalueert het boord.<br><br>
+`updateItems` zorgt ervoor dat als animaties niet zijn afgerond dat de items alsnog op de juiste plek worden getekend. Voor het geval een animatie net verkeerd getimed is.<br><br>
+`clearItems` gaat langs alle items en indien er reeksen zijn van 3+ keer dezelfde `Rune` wordt deze gecleared. Hierbij worden ook meteen animaties ingesteld, punten geupdate en gecheckt of zich in de aangrenzende cellen `Ingredienten` bevinden. Aangrenzende ingredienten worden ook gecleared en toegevoegd aan `inventory`. Als er items zijn gecleared verandert de state in ANIMATION, anders wordt het GAMEPLAY<br><br>
+`updateSpellbook` gaat langs alle spells waar je toegang tot hebt en vergelijkt ze met je inventory om te kijken of je ze al kan gebruiken.<br><br>
+`checkHP` kijkt of de `hp` van de balk onder 0 zit, zo ja dan verandert de state in STOP en ontstaat er een retry-`button` om de game te resetten.
+#### STOP
+STOP doet verrassend genoeg **nog minder dan WAIT!** Het telt niet eens af. Als `state` op STOP wordt gezet moet het van buitenaf weer in iets anders veranderd worden, anders blijft het boord tot het eind der tijden op pauze staan.
+
+### Item
+Item is een basis-class voor de objecten in alle cellen van het speelveld.<br><br>
+`src` wordt gerbuikt voor `image` en tekent dus de afbeelding van het corresponderende item.<br><br>
+`type` geeft aan wat voor type item het is, `matchable` geeft aan met welke typen het kan matchen. Ik was van plan om misschien iets te doen met `Items` die met meerdere typen konden matchen maar ben hier niet aan toegekomen, dus `matchable` is altijd een array met als enige waarde hetzelfde als bij `type`.<br><br>
+`weight` geeft de kans aan dat dit item genereert.<br><br>
+`targetCell`, `animSpeed` en `moving` worden gebruikt om het `Item` te animeren zoals beschreven bij Game -> ANIMATION. `moving` geeft aan óf dit `Item` aan het bewegen is; `targetCell` en `animSpeed` bepalen waarheen en hoe snel.
+
+### Rune
+`Rune` heeft geen extra waarden. Het heeft een constructor die het aantal code íets inkort maar heb er vooral een aparte class van gemaakt voor overzichtelijkheid.
+
+### Ingredient
+Extensie van `item`. Heeft als enige extra attribuut een string die de naam aangeeft. Dit is basically een ID en had dus misschien beter een enum kunnen zijn maar ik had er een string van gemaakt voor debugging en er zit nu net wat te veel code aan vast om het nog ff te veranderen en daarnaast maakt het niet heel veel uit dus ja. 👽
+
+### Spell
+`Spells` hebben één functie: `use`. Dit is een callback-functie die wordt uitgevoerd als je de `Spell` activeert. Spells hebben als `image` een `CanvasAnimatedImage`. Deze wordt in de constructor helemaal geregeld en omdat het een extensie is van `CanvasImage` botst dit nergens met andere code.
+
+### BookSpell
+Is dit een coole variant op `Spell`? Nee! Dit is de knop waar je op drukt om een `Spell` te genereren.<br><br>
+`sprite` wordt gebruikt om het icoontje van de `Spell` te tekenen. `disableSprite` is een zwarte transparante overlay voor wanneer je je dit niet kan verooloven.<br><br>
+`spell` is gwn een referentie naar de `Spell` die deze `BookSpell` reflecteerd.<br><br>
+`btn` is de `button` zelf, wordt achter de `sprite` getekend.<br><br>
+`affordable` vergelijkt de `game`'s `inventory` met de `cost` om te kijken of je je dit al kan veroorloven.<br><br>
+`updateLook` kijkt naar affordable zet op basis hiervan de `visibility` van `disableSprite` op true of false.<br><br>
+`genItem` neemt een willekeurige cel op het speelveld en verandert de inhoudt in een #diepe kopie van `spell`.
+
+### Recipe
+Als je op een `BookSpell` klikt en de `cost` van deze niet `affordable` is dan wordt `dit object` getoond met een overzicht van de `Ingredienten` die je nodig hebt om aan de `cost` van de `BookSpell` te voldoen. `De `game` wordt hiervoor op WAIT. M.b.v. een kruisje, `btn` kun je vervolgens terugkeren naar het spel`.
 
 ## Encapsulation
 
