@@ -71,7 +71,7 @@ export class Game {
         this.board = new GameBoard();
         this.board.touch = this.touch;
         this.board.generateBoard(this);
-        this.updateDisplaySize();
+        this.updateDisplaySize(!this.fullScreen);
         window.addEventListener('resize', () => this.updateDisplaySize(!this.fullScreen));
         requestAnimationFrame((ms) => this.loop(ms));
         this.fsBtn = this.createButton("fullscreen.png", new Vector(134, 6), new Vector(20, 20), () => this.toggleFullscreen());
