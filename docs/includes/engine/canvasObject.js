@@ -30,6 +30,9 @@ export class CanvasAnimatedImage extends CanvasImage {
         this.fpsTimer += game.delta;
         if (this.fpsTimer > this.frameTime) {
             this.fpsTimer -= this.frameTime;
+            if (this.fpsTimer > this.frameTime) {
+                this.fpsTimer = this.frameTime;
+            }
             this.currentFrame++;
             if (this.currentFrame >= this.frames) {
                 if (this.selfDestruct) {
