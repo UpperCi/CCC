@@ -72,7 +72,7 @@ export class TouchManager {
     }
 
     // converts a mouseEvent to a Touch
-    public fakeTouchEvent(e: MouseEvent) {
+    private fakeTouchEvent(e: MouseEvent) {
         return {
             identifier: -1,
             target: e.target,

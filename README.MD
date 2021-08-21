@@ -21,6 +21,8 @@ Wanneer je volledige eindcijfer (klassendiagram + afgeronde eindopdracht) een on
 <Br>
 
 # Klassendiagram
+![UML](docs/assets/readme/CCCUML.svg)
+![UML](docs/assets/readme/CCCUML-light.svg)
 
 Plaats je klassendiagram als PNG bestand. Dat kan je doen met een image tag:
 

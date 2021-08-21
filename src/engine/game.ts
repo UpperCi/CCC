@@ -34,7 +34,7 @@ export class Game {
 		this.ctx = this.canvas.getContext('2d', { alpha: false });
 		document.querySelector('body').appendChild(this.canvas);
 	}
-	
+
 	private toggleFullscreen() { // thx W3schools: https://www.w3schools.com/howto/howto_js_fullscreen.asp
 		let elem = document.documentElement;
 		if (!this.fullScreen && elem.requestFullscreen) {
@@ -95,7 +95,7 @@ export class Game {
 		this.fsBtn.zIndex = 100;
 	}
 
-	public updateFrames(ms: number): void {
+	private updateFrames(ms: number): void {
 		this.delta = (ms - this.deltaTimestamp) / 1000 * 60;
 		this.deltaTimestamp = ms;
 

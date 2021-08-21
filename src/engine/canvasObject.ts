@@ -31,12 +31,12 @@ export class CanvasImage implements CanvasObject {
 // aniamted images through spritesheets. Only supports horizontal spritesheets where all sprites are the same size
 export class CanvasAnimatedImage extends CanvasImage {
     // width of singular frame
-    public frameWidth: number;
-    public currentFrame: number = 0;
-    public frameTime: number;
-    public fpsTimer: number = 0;
-    public frames: number;
-    public selfDestruct = false;
+    private frameWidth: number;
+    private currentFrame: number = 0;
+    private frameTime: number;
+    private fpsTimer: number = 0;
+    private frames: number;
+    private selfDestruct = false;
 
     constructor(src: string, w: number, pos: Vector, fps: number = 15, selfDestruct = false) {
         super(src, pos);
@@ -75,8 +75,8 @@ export class CanvasText implements CanvasObject {
     public position: Vector;
     public text: string;
     public align: CanvasTextAlign = "center";
-    public font = "Arial 24px"
-    public fill = "#fff";
+    public font: string = "Arial 24px"
+    public fill: string = "#fff";
 
     constructor(text: string, pos: Vector) {
         this.position = pos;
