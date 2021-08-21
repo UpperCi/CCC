@@ -15,7 +15,6 @@ export class Healthbar extends CanvasImage {
 
     public draw(ctx: CanvasRenderingContext2D, game: Game) {
         if (this.visible) {
-            let w = this.img.width;
             let h = this.img.height;
             // clips part of image based on remaining health
             ctx.drawImage(this.img, 0, 0, this.clip, h, this.position.x, this.position.y, Math.ceil(this.clip), h);
