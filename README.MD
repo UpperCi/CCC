@@ -32,10 +32,10 @@ Plaats je klassendiagram als PNG bestand. Dat kan je doen met een image tag:
 
 ### Game
 `Game` regelt een aantal algemene zaken.
-`Game` heeft de `loop`-functie, dit is dé functie die alles laat updaten. In de `loop`-functie worden de `draw`-functies van alle `CanvasObjects` aangeroepen, de `TouchManager` wordt ge-update en delta wordt berekend.<br> 
-`Game` heeft een referentie naar alle `CanvasObjects` die op de canvas getekend moeten worden. Op volgorde van `zIndex` (laag naar hoog) worden deze tijdens het loopen allemaal geupdate. Het is een 2D array, op de 10e plek zit een array met alle objecten die een `zIndex` hebben van 10.<br>
-In `updateDisplaySize` wordt de grootte van het canvas afgesteld op de grootte van het scherm. Deze neemt met `getBoundingClientRect()` de grootte van de pagina, haalt hier (indien niet in fullscreen) de margins van af en berekent vervolgens hoe hoog en breed de canvas kan zijn. Wordt aangeroepen elke keer dat de window wordt ge-resized.<br>
-`fsButton` is een `Button` die regelt dat je fullscreen in- en uit kan schakelen. Of je in fullscreen zit wordt in `fullscreen` bijgehouden, op die manier kan ik ervoor zorgen dat de margins rondom het canvas verdwijnen wanneer je fullscreen inschakelt.<br>
+`Game` heeft de `loop`-functie, dit is dé functie die alles laat updaten. In de `loop`-functie worden de `draw`-functies van alle `CanvasObjects` aangeroepen, de `TouchManager` wordt ge-update en delta wordt berekend.<br><br>
+`Game` heeft een referentie naar alle `CanvasObjects` die op de canvas getekend moeten worden. Op volgorde van `zIndex` (laag naar hoog) worden deze tijdens het loopen allemaal geupdate. Het is een 2D array, op de 10e plek zit een array met alle objecten die een `zIndex` hebben van 10.<br><br>
+In `updateDisplaySize` wordt de grootte van het canvas afgesteld op de grootte van het scherm. Deze neemt met `getBoundingClientRect()` de grootte van de pagina, haalt hier (indien niet in fullscreen) de margins van af en berekent vervolgens hoe hoog en breed de canvas kan zijn. Wordt aangeroepen elke keer dat de window wordt ge-resized.<br><br>
+`fsButton` is een `Button` die regelt dat je fullscreen in- en uit kan schakelen. Of je in fullscreen zit wordt in `fullscreen` bijgehouden, op die manier kan ik ervoor zorgen dat de margins rondom het canvas verdwijnen wanneer je fullscreen inschakelt.<br><br>
 `Game` heeft een aantal `create...`-functies. Deze dienen als een soort wrapper voor het aanmaken van bepaalde classes en haalt de objecten meteen door `addObj()` waardoor de objecten die je aanroept ook meteen gerendered worden. Zo kun je in één keer `createImage(args...)` doen in plaats van 
 ```ts
 let img = new Image(args...);
