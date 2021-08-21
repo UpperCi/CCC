@@ -139,6 +139,7 @@ export class Game {
 		}
 
 		this.board.update();
+		this.touch.update();	
 
 		requestAnimationFrame((ms: number) => this.loop(ms));
 	}

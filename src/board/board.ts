@@ -608,8 +608,6 @@ export class GameBoard {
 				// this.game.fillRect('rgba(0,0,0,0.5)', 0, 0, this.game.canvasSize.x, this.game.canvasSize.y);
 				break;
 		}
-
-		this.touch.update();
 	}
 	// initialise item classes based on data in the ITEMS constant, add those to generatable items
 	private initItemPool() {

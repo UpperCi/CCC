@@ -116,6 +116,7 @@ export class Game {
             }
         }
         this.board.update();
+        this.touch.update();
         requestAnimationFrame((ms) => this.loop(ms));
     }
     addObj(obj) {
