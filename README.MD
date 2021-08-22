@@ -22,12 +22,6 @@ Wanneer je volledige eindcijfer (klassendiagram + afgeronde eindopdracht) een on
 
 # Klassendiagram
 ![UML](docs/assets/readme/CCCUML.png)
-
-Plaats je klassendiagram als PNG bestand. Dat kan je doen met een image tag:
-
-```javascript
-<img src="mijnklassendiagram.png">
-```
 ## Classes en verantwoordelijkheden
 
 ### Game
@@ -186,23 +180,76 @@ Is dit een coole variant op `Spell`? Nee! Dit is de knop waar je op drukt om een
 `genItem` neemt een willekeurige cel op het speelveld en verandert de inhoudt in een #diepe kopie van `spell`.
 
 ### Recipe
-Als je op een `BookSpell` klikt en de `cost` van deze niet `affordable` is dan wordt `dit object` getoond met een overzicht van de `Ingredienten` die je nodig hebt om aan de `cost` van de `BookSpell` te voldoen. `De `game` wordt hiervoor op WAIT. M.b.v. een kruisje, `btn` kun je vervolgens terugkeren naar het spel`.
+Als je op een `BookSpell` klikt en de `cost` van deze niet `affordable` is dan worden `bg`, `btn` en `items` getoond met een overzicht van de `Ingredienten` die je nodig hebt om aan de `cost` van de `BookSpell` te voldoen. `De `game` wordt hiervoor op WAIT. M.b.v. een kruisje, `btn` kun je vervolgens terugkeren naar het spel`.
 
 ## Encapsulation
+`Game` en `GameBoard` hebben voornamelijk attributen op private staan, met uitzondering van attributen die ik van buitenaf wil aanpassen uiteraard. Omdat deze heel veel logica intern afhandelen is het niet nodig om veel te openbaren. Bij de andere classes heb ik **over het algemeen** meer attributen op public staan, dit is omdat ik deze classes voornamelijk gebruik als gespecialiseerde datatypen.<br><br>
+`HealthBar` heeft een redelijke mix:
+```ts
+export class Healthbar extends CanvasImage {
+    public hp: number = 0;
+    private maxHealth: number = 100;
+    private clip: number = 0;
 
-Toelichting encapsulation
+    public draw(ctx: CanvasRenderingContext2D, game: Game) : void;
+    public updateHealth(dmg: number) : void
+}
+```
+`hp` staat op public omdat deze in `GameBoard` wordt uitgelezen om te bepalen wanneer je hebt gewonnen.<br><br>
+`maxHealth` en `clip` staan op private. `maxHealth` wordt eenmalig gedefiniëerd (in de constructor) en daarna enkel gebruik om `clip` te berekenen.<br><br>
+`updateHealth` staat op public, deze functie past de waarde van `hp` aan en update vervolgens `clip`.<br><br>
+`draw` staat ook op public, deze functie wordt vanuit `Game` elke frame aangeroepen.<br><br><br>
+Ik maak in `Vector` gebruik van een getter, namelijk om de lengte op te halen van de lijn. Dit is handig voor rekenen met `Vectoren` en kan niet als normaal attribuut worden opgeslagen omdat je er de stelling van Pythagoras op moet uitvoeren (shoutout naar Pythagoras btw).<br><br>
+In `BookSpell` heb ik ook een getter, affordable. Deze is wat uitgebreider want deze moet kijken of in de `inventory` van de `game` genoeg van de juiste objecten zich bevinden om de `cost` te overschrijden. Het resultaat hiervan wordt in een boolean gereturnd.
+```ts
+get affordable() : boolean {
+    let board = this.game.board;
+    let inv = board.inventory;
+    
+    for (let i of Object.keys(this.cost)) {
+        if (!(i in inv)) {
+            return false;
+        } else if (inv[i] < this.cost[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+```
 
 ## Composition
-
-Toelichting composition
+Composition wordt een aantal keer toegepast. Ik zal `BookSpell` weer als voorbeeld nemen. Deze class tekent een knop, op deze knop een geanimeerd icoontje en indien de `spell` onbetaalbaar is ook hier nog een afbeelding overheen. Om dit voor elkaar te krijgen heeft deze class een `Button`, `CanvasAnimatedImage` en een `CanvasImage` in z'n attributen zitten.<br><br>
+Om te checken of je je de `spell` kan veroorloven moet de `inventory` van het `GameBoard` gecheckt worden. Om dit te doen is `Game` als attribuut toegevoegd, deze heeft het attribuut `Board` en deze heeft de `inventory` die ik nodig heb.<br><br>
+M.b.v. `GenItem` kan op het boord een `Spell` gegenereerd worden. Om te bepalen welke spell er bij deze knop hoort heeft deze class ook de `Spell` `spell` als attribuut. (verwarrend maar hopelijk duidelijk)
 
 ## Inheritance
+De meeste ineritance heeft als bron het interface `CanvasObject`. Doordat alle objecten die getekend moeten worden een set gemeenschappelijke attributen heeft kan ik in `Game` de meeste code schrijven zonder precies te weten welke classes erdoorheen gaan. Ik zal op elk van ze de draw-functie kunnen oproepen om ze te tekenen, en dat is meer dan genoeg informatie. Door alles op deze manier te verdelen is de code voor het tekenen van objecten ook erg modulair, en als ik een nieuw object wil toevoegen hoef ik niet in `Game` ofzo te klooien. Ik kan gewoon een nieuwe class aanmaken en draw een nieuwe definitie geven.<br><br>
+Van `Item` wordt ook ge-inherit. Dit is wederom zodat ik meer algemene code kan schrijven voor bijvoorbeeld het animeren van objecten op het boord. `Ingredient`, `Rune` en `Spell` zijn voor 90% exact hetzelfde en ik hoef deze gemeenschappelijke eigenschappen dus ook maar één keer te declareren, definiëren en verwerken.
 
-Toelichting inheritance
+## Game development technieken
 
-<br>
-<br>
-<Br>
+### HTML+CSS Basics
+De game wordt gerendered op een canvas-element dus ik heb niet heel veel HTML en CSS kunnen toepassen. Ik verander wel dynamisch de grootte en positie van de canvas als je het scherm resized. Daarnaast verander ik ook het attribuut cursor om van de muis een handje te maken als deze over een knop zit. Dit is een beetje buggy maar dat komt door hoe ik detecteer of je muis erboven zit, niet omdat de CSS niet werkt.<br><br>
+Ik heb in de style.css ook wat dingen neergezet om ervoor te zorgen dat canvas de pixelart niet anti-aliased.
+
+### Game Loop
+Zodra je in `game` `start` oproept wordt ook de `loop`-functie uitgevoerd. Deze functie herhaalt zichzelf met `requestAnimationFrame((ms: number) => this.loop(ms));`. Vanuit deze functie worden alle andere loops aangeroepen. `update` in `GameBoard`, `draw` in alle `CanvasObjecten` etc.
+
+### Collision Detection
+Ik heb geen echte collision in de game aangezien het gwn een Candy Crush kloon is. Máár ik heb wel knoppen die detecteren wanneer je muis erboven zit, wat er redelijk op lijkt:
+```ts
+public posIn(v: Vector) : boolean {
+    let p = this.position;
+    let s = this.size;
+    return (v.x > p.x && v.x < p.x + s.x && v.y > p.y && v.y < p.y + s.y);
+}
+```
+
+### Besturing
+De game wordt met de muis/het touchscreen bestuurd. Al deze events gaan langs `TouchManager`, in deze class kan ik vervolgens b.v. uitlezen waar de muis heeft getikt en of er afgelopen frame is losgelaten.
+
+### Object Pooling
+In `Game` zit één mooie array met alle objecten die getekend moeten worden, `canvasObjs`. Het is eigenlijk een 2D array zodat ik een z-index kon implementeren maar alsnog. Elk object wordt als geleike beschouwd, die extra dimensie is alleen om ervoor te zorgen dat de objecten in een bepaalde volgorde worden getekend.
 
 # Game
 
@@ -210,22 +257,3 @@ Mijn nieuwe thema uit de [gaminator](https://hr-cmgt.github.io/gaminator/) is: F
 
 Toelichting gameplay:
 Met behulp van 'heksachtige' (Bewitch) ingrediënten (pompoenen, vleermuisvleugels) maak je spreuken (Fantasy) om robots (Robots) te verslaan. Fantasy en bewitching gaan een beetje hand in hand.
-## Classes
-
-Toelichting classes
-
-## Encapsulation
-
-Toelichting encapsulation
-
-## Composition
-
-Toelichting composition
-
-## Inheritance
-
-Toelichting inheritance
-
-## Game development technieken
-
-Beschrijving game development technieken
